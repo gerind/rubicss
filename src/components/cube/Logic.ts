@@ -124,28 +124,28 @@ export class Logic {
   }
 
   rotateRight() {
-    this.rotate({
+    return this.rotate({
       rotate: rotateOY,
       count: -1,
       turnBlock: Block.prototype.turnLeft,
     })
   }
   rotateLeft() {
-    this.rotate({
+    return this.rotate({
       rotate: rotateOY,
       count: 1,
       turnBlock: Block.prototype.turnRight,
     })
   }
   rotateUp() {
-    this.rotate({
+    return this.rotate({
       rotate: rotateOX,
       count: -1,
       turnBlock: Block.prototype.turnDown,
     })
   }
   rotateDown() {
-    this.rotate({
+    return this.rotate({
       rotate: rotateOX,
       count: 1,
       turnBlock: Block.prototype.turnUp,
@@ -153,7 +153,7 @@ export class Logic {
   }
 
   rotateR(clockwise: boolean) {
-    this.rotate({
+    return this.rotate({
       x: [1],
       rotate: rotateOX,
       count: clockwise ? 1 : -1,
@@ -161,7 +161,7 @@ export class Logic {
     })
   }
   rotateL(clockwise: boolean) {
-    this.rotate({
+    return this.rotate({
       x: [-1],
       rotate: rotateOX,
       count: clockwise ? -1 : 1,
@@ -169,7 +169,7 @@ export class Logic {
     })
   }
   rotateU(clockwise: boolean) {
-    this.rotate({
+    return this.rotate({
       y: [-1],
       rotate: rotateOY,
       count: clockwise ? -1 : 1,
@@ -179,7 +179,7 @@ export class Logic {
     })
   }
   rotateD(clockwise: boolean) {
-    this.rotate({
+    return this.rotate({
       y: [1],
       rotate: rotateOY,
       count: clockwise ? 1 : -1,
@@ -189,7 +189,7 @@ export class Logic {
     })
   }
   rotateF(clockwise: boolean) {
-    this.rotate({
+    return this.rotate({
       z: [1],
       rotate: rotateOZ,
       count: clockwise ? 1 : -1,
