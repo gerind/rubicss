@@ -30,7 +30,9 @@ interface IRotateOptions {
 export interface IRotateResponce {
   before: ISquare
   after: ISquare
-  affectedCoords?: [IKey, IKey][]
+  affectedCoords: [IKey, IKey][]
+  from?: [number, number, number]
+  to?: [number, number, number]
 }
 
 export function forkey(callbackfn: (k: IKey) => void) {
@@ -43,10 +45,7 @@ export function forkey3(callbackfn: (k1: IKey, k2: IKey, k3: IKey) => void) {
   forkey(k1 => forkey2((k2, k3) => callbackfn(k1, k2, k3)))
 }
 
-function coordsSatisfy(
-  [x, y, z]: [number, number, number],
-  options: IRotateOptions
-) {
+function coordsSatisfy([x, y, z]: [IKey, IKey, IKey], options: IRotateOptions) {
   return (
     (!options.x || options.x.some(i => i === x)) &&
     (!options.y || options.y.some(i => i === y)) &&
@@ -65,17 +64,11 @@ export function generateCube(generateSides: boolean = true): ICube {
 
   if (!generateSides) return cube
 
-  //front blue
   forkey2((x, y) => (cube[x][y][1].sides.front = 'blue'))
-  //back green
   forkey2((x, y) => (cube[x][y][-1].sides.back = 'green'))
-  //left red
   forkey2((y, z) => (cube[-1][y][z].sides.left = 'red'))
-  //right orange
   forkey2((y, z) => (cube[1][y][z].sides.right = 'orange'))
-  //top white
   forkey2((x, z) => (cube[x][-1][z].sides.top = 'white'))
-  //bottom yellow
   forkey2((x, z) => (cube[x][1][z].sides.bottom = 'yellow'))
 
   return cube
@@ -93,7 +86,9 @@ export class Logic {
     return square
   }
 
-  private rotate(options: IRotateOptions) {
+  private rotate(options: IRotateOptions): IRotateResponce {
+    const before = this.getFrontSquare()
+
     const next = generateCube(false)
     forkey3((x, y, z) => {
       if (coordsSatisfy([x, y, z], options)) {
@@ -106,6 +101,19 @@ export class Logic {
       }
     })
     this.blocks = next
+
+    const after = this.getFrontSquare()
+    const affectedCoords: [IKey, IKey][] = []
+    if (options.x || options.y) {
+      forkey2((x, y) => {
+        if (coordsSatisfy([x, y, 1], options)) affectedCoords.push([x, y])
+      })
+    }
+    return {
+      before,
+      after,
+      affectedCoords,
+    }
   }
 
   rotateRight() {

@@ -34,6 +34,7 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
 
   const cubes = useMemo(() => {
     const ans: JSX.Element[] = []
+    const front = logic.getFrontSquare()
     for (let x = -1 as IKey; x <= 1; ++x) {
       for (let y = -1 as IKey; y <= 1; ++y) {
         ans.push(
@@ -43,14 +44,14 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
             width={sideWidth}
             x={x}
             y={y}
-            state={blocks[x][y][1].sides.front}
+            state={front[x][y]}
           />
         )
         console.log(x, y, blocks[x][y][1].sides)
       }
     }
     return ans
-  }, [perspective, sideWidth, blocks])
+  }, [perspective, sideWidth, blocks, logic])
 
   return <>{cubes}</>
 }
