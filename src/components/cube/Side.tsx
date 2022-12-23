@@ -38,10 +38,5 @@ const Side: React.FC<ISideProps> = ({ perspective, state, width, x, y }) => {
 
   return <div style={styles}></div>
 }
-/*
-0 -> 1
-1 -> 0
-2 -> -1
-*/
 
 export default Side

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ICube, Logic } from './Logic'
+import { ICube, IKey, Logic } from './Logic'
 import Side from './Side'
 
 interface ICubeProps {
@@ -13,18 +13,18 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
 
   useEffect(() => {
     function handler(event: KeyboardEvent) {
-      if (/^(?:ArrowLeft|ArrowRight|ArrowUp|ArrowDown)$/.test(event.code)) {
+      if (/^Arrow(?:Left|Right|Up|Down)$/i.test(event.code)) {
         const methodName = `rotate${event.code.slice(5)}`
         const method = logic[methodName as keyof Logic] as () => void
         method.call(logic)
         setBlocks(logic.blocks)
       }
-      if (/^(?:r|l|u|d|f)$/i.test(event.key)) {
-        const methodName = `rotate${event.key.toUpperCase()}`
+      if (/^Key(?:R|L|U|D|F)$/i.test(event.code)) {
+        const methodName = `rotate${event.code[3]}`
         const method = logic[methodName as keyof Logic] as (
           clockwise: boolean
         ) => void
-        method.call(logic, event.key.toLowerCase() === event.key)
+        method.call(logic, !event.shiftKey)
         setBlocks(logic.blocks)
       }
     }
@@ -34,8 +34,8 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
 
   const cubes = useMemo(() => {
     const ans: JSX.Element[] = []
-    for (let x = -1 as -1 | 0 | 1; x <= 1; ++x) {
-      for (let y = -1 as -1 | 0 | 1; y <= 1; ++y) {
+    for (let x = -1 as IKey; x <= 1; ++x) {
+      for (let y = -1 as IKey; y <= 1; ++y) {
         ans.push(
           <Side
             key={x + '_' + y}

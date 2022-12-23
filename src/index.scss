@@ -24,6 +24,11 @@ body {
   @include absolute();
   background: #b0c4de;
 }
+
+.topleft {
+  @include absolute(0, 0);
+}
+
 .center {
   max-width: 0;
   max-height: 0;
