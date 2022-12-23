@@ -31,8 +31,8 @@ export interface IRotateResponce {
   before: ISquare
   after: ISquare
   affectedCoords: [IKey, IKey][]
-  from?: [number, number, number]
-  to?: [number, number, number]
+  from: [number, number, number]
+  to: [number, number, number]
 }
 
 export function forkey(callbackfn: (k: IKey) => void) {
@@ -102,17 +102,24 @@ export class Logic {
     })
     this.blocks = next
 
-    const after = this.getFrontSquare()
     const affectedCoords: [IKey, IKey][] = []
     if (options.x || options.y) {
       forkey2((x, y) => {
         if (coordsSatisfy([x, y, 1], options)) affectedCoords.push([x, y])
       })
     }
+    const from: [number, number, number] = [
+      options.rotate === rotateOX ? options.count * 90 : 0,
+      options.rotate === rotateOY ? options.count * 90 : 0,
+      options.rotate === rotateOZ ? options.count * 90 : 0,
+    ]
+    const to = from.map(deg => -deg) as typeof from
     return {
       before,
-      after,
+      after: this.getFrontSquare(),
       affectedCoords,
+      from,
+      to,
     }
   }
 
@@ -153,7 +160,6 @@ export class Logic {
       turnBlock: clockwise ? Block.prototype.turnUp : Block.prototype.turnDown,
     })
   }
-
   rotateL(clockwise: boolean) {
     this.rotate({
       x: [-1],
@@ -162,7 +168,6 @@ export class Logic {
       turnBlock: clockwise ? Block.prototype.turnDown : Block.prototype.turnUp,
     })
   }
-
   rotateU(clockwise: boolean) {
     this.rotate({
       y: [-1],
@@ -173,7 +178,6 @@ export class Logic {
         : Block.prototype.turnRight,
     })
   }
-
   rotateD(clockwise: boolean) {
     this.rotate({
       y: [1],
@@ -184,7 +188,6 @@ export class Logic {
         : Block.prototype.turnLeft,
     })
   }
-
   rotateF(clockwise: boolean) {
     this.rotate({
       z: [1],
