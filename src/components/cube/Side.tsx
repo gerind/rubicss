@@ -51,15 +51,15 @@ const Side: React.FC<ISideProps> = ({
       transition: `transform .5s linear`,
       transform: `translate(-50%, -50%) perspective(${perspective}px) rotateX(${
         deg[0]
-      }) rotateY(${deg[1]}) rotateZ(${deg[2]}) translate3d(${width * x}px, ${
-        width * y
-      }px, ${width * 1.5}px)`,
+      }deg) rotateY(${deg[1]}deg) rotateZ(${deg[2]}deg) translate3d(${
+        width * x
+      }px, ${width * y}px, ${width * 1.5}px)`,
     }),
     [deg, perspective, state, width, x, y]
   )
 
   useEffect(() => {
-    if (to) setDeg(to)
+    setDeg(to ? to : [0, 0, 0])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

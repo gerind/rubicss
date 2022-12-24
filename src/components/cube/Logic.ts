@@ -109,7 +109,7 @@ export class Logic {
       })
     }
     const from = [rotateOX, rotateOY, rotateOZ].map(f =>
-      options.rotate === f ? options.count * 90 : 0
+      options.rotate === f ? options.count * -90 : 0
     ) as [number, number, number]
     const to = from.map(deg => (deg ? -deg : deg)) as typeof from
     return {

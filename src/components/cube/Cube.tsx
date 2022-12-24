@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { forkey2, ICube, IKey, IRotateResponce, Logic } from './Logic'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { forkey2, ICube, IRotateResponce, Logic } from './Logic'
 import Side from './Side'
 
 interface ICubeProps {
@@ -10,6 +10,56 @@ interface ICubeProps {
 const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
   const logic = useMemo(() => new Logic(), [])
   const [blocks, setBlocks] = useState<ICube>(logic.blocks)
+  const [animatedSides, setAnimatedSides] = useState<JSX.Element[]>([])
+  const [animatedCount, setAnimatedCount] = useState(0)
+
+  const startAnimation = useCallback(
+    (rotateResponse: IRotateResponce) => {
+      const ans: JSX.Element[] = []
+      forkey2((x, y) => {
+        if (
+          rotateResponse.affectedCoords.length === 0 ||
+          rotateResponse.affectedCoords.some(([_x, _y]) => _x === x && _y === y)
+        ) {
+          ans.push(
+            <Side
+              key={`animated_${x}_${y}_before`}
+              perspective={perspective}
+              state={rotateResponse.before[x][y]}
+              width={sideWidth}
+              x={x}
+              y={y}
+              to={rotateResponse.to}
+              onTransitionEnd={() => setAnimatedCount(cnt => cnt - 1)}
+            />,
+            <Side
+              key={`animated_${x}_${y}_after`}
+              perspective={perspective}
+              state={rotateResponse.after[x][y]}
+              width={sideWidth}
+              x={x}
+              y={y}
+              from={rotateResponse.from}
+            />
+          )
+        } else {
+          ans.push(
+            <Side
+              key={`noanimated_${x}_${y}`}
+              perspective={perspective}
+              state={rotateResponse.before[x][y]}
+              width={sideWidth}
+              x={x}
+              y={y}
+            />
+          )
+        }
+      })
+      setAnimatedSides(ans)
+      setAnimatedCount(rotateResponse.affectedCoords.length || 9)
+    },
+    [perspective, sideWidth]
+  )
 
   useEffect(() => {
     function handler(event: KeyboardEvent) {
@@ -27,20 +77,21 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
       }
       if (rotate) {
         const rotateResponse = rotate()
+        startAnimation(rotateResponse)
         setBlocks(logic.blocks)
       }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [logic])
+  }, [logic, startAnimation])
 
-  const cubes = useMemo(() => {
+  const staticSides = useMemo(() => {
     const ans: JSX.Element[] = []
     const front = logic.getFrontSquare()
     forkey2((x, y) =>
       ans.push(
         <Side
-          key={x + '_' + y}
+          key={`static_${x}_${y}`}
           perspective={perspective}
           width={sideWidth}
           x={x}
@@ -52,7 +103,7 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
     return ans
   }, [perspective, sideWidth, blocks, logic])
 
-  return <>{cubes}</>
+  return <>{animatedCount ? animatedSides : staticSides}</>
 }
 
 export default Cube
