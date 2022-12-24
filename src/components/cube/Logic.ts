@@ -108,12 +108,10 @@ export class Logic {
         if (coordsSatisfy([x, y, 1], options)) affectedCoords.push([x, y])
       })
     }
-    const from: [number, number, number] = [
-      options.rotate === rotateOX ? options.count * 90 : 0,
-      options.rotate === rotateOY ? options.count * 90 : 0,
-      options.rotate === rotateOZ ? options.count * 90 : 0,
-    ]
-    const to = from.map(deg => -deg) as typeof from
+    const from = [rotateOX, rotateOY, rotateOZ].map(f =>
+      options.rotate === f ? options.count * 90 : 0
+    ) as [number, number, number]
+    const to = from.map(deg => (deg ? -deg : deg)) as typeof from
     return {
       before,
       after: this.getFrontSquare(),
