@@ -76,6 +76,28 @@ export function generateCube(generateSides: boolean = true): ICube {
 
 export class Logic {
   public blocks = generateCube()
+  private callback: Function = () => {}
+
+  registerCallback(_callback: Function) {
+    this.callback = _callback
+  }
+
+  deconstruct() {
+    const methods = [
+      this.rotateUp,
+      this.rotateLeft,
+      this.rotateRight,
+      this.rotateDown,
+      this.rotateR,
+      this.rotateU,
+      this.rotateL,
+      this.rotateD,
+      this.rotateF,
+    ].map(f => f.bind(this))
+    for (let i = 0; i < 500; ++i)
+      methods[Math.floor(Math.random() * methods.length)](Math.random() < 0.5)
+    this.callback()
+  }
 
   getFrontSquare(): ISquare {
     const square = {} as ISquare

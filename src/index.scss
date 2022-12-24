@@ -11,6 +11,13 @@
   align-items: $align-items;
 }
 
+$background: #b0c4de;
+$controlcolor: #728d3c;
+
+* {
+  box-sizing: border-box;
+}
+
 :root,
 body {
   margin: 0;
@@ -22,13 +29,70 @@ body {
 }
 #root {
   @include absolute();
-  background: #b0c4de;
+  background: $background;
 }
 
-.topleft {
+.grid {
+  @include absolute();
+  display: flex;
+}
+.display {
+  background: white;
+  border: 12px solid black;
+  border-radius: 24px;
+  overflow-y: auto;
+  padding: 12px;
+  width: 100%;
+  height: 100%;
+  max-width: 333px;
+}
+
+.instruction {
+  p::first-letter {
+    font-weight: bold;
+  }
+}
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.arrow {
   @include absolute(0, 0);
+  width: 50px;
+  height: 50px;
+  @include flex();
+  font-size: 30px;
+  background: transparent;
+  color: $controlcolor;
+  cursor: pointer;
+  &:hover {
+    background: $controlcolor;
+    color: $background;
+  }
+  &:active {
+    color: red;
+  }
 }
-
+.deconstruct {
+  @include absolute(0, unset, 0, unset);
+  width: 150px;
+  height: 50px;
+  border: 5px solid $controlcolor;
+  color: $controlcolor;
+  @include flex();
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  &:hover {
+    background: $controlcolor;
+    color: $background;
+  }
+  &:active {
+    color: red;
+  }
+}
 .center {
   max-width: 0;
   max-height: 0;

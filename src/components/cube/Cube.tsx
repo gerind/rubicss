@@ -5,13 +5,17 @@ import Side from './Side'
 interface ICubeProps {
   perspective: number
   sideWidth: number
+  logic: Logic
 }
 
-const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
-  const logic = useMemo(() => new Logic(), [])
+const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth, logic }) => {
   const [blocks, setBlocks] = useState<ICube>(logic.blocks)
   const [animatedSides, setAnimatedSides] = useState<JSX.Element[]>([])
   const [animatedCount, setAnimatedCount] = useState(0)
+
+  useEffect(() => {
+    logic.registerCallback(() => setBlocks(logic.blocks))
+  }, [logic])
 
   const startAnimation = useCallback(
     (rotateResponse: IRotateResponce) => {
@@ -63,6 +67,7 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
 
   useEffect(() => {
     function handler(event: KeyboardEvent) {
+      if (animatedCount) return
       let rotate: (() => IRotateResponce) | null = null
       if (/^Arrow(?:Left|Right|Up|Down)$/i.test(event.code)) {
         const methodName = `rotate${event.code.slice(5)}`
@@ -83,7 +88,7 @@ const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth }) => {
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [logic, startAnimation])
+  }, [logic, startAnimation, animatedCount])
 
   const staticSides = useMemo(() => {
     const ans: JSX.Element[] = []
