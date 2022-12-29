@@ -37,7 +37,7 @@ const App: React.FC = () => {
         moveType = code.slice(5) as IMoveType
       else if (/^Key(?:R|L|U|D|F)$/.test(code)) moveType = code[3] as IMoveType
       if (moveType) {
-        setTimeout(() => helpers!.performMove(moveType!, !shiftKey), 0)
+        helpers!.performMove(moveType!, !shiftKey)
       }
     },
     [helpers]

@@ -62,7 +62,7 @@ const Side: React.FC<ISideProps> = ({
 
   useEffect(() => {
     console.log('Side useEffect')
-    setDeg(to ? to : [0, 0, 0])
+    requestAnimationFrame(() => setDeg(to ? to : [0, 0, 0]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

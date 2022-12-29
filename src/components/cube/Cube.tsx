@@ -42,10 +42,9 @@ const Cube: React.FC<ICubeProps> = ({
   }, [])
 
   const onTransitionEnd = useCallback(() => {
-    // const callbacks = [...transitionWaitRef.current]
-    // transitionWaitRef.current = []
-    // callbacks.forEach(cb => cb())
-    performMove('R', true)
+    const callbacks = [...transitionWaitRef.current]
+    transitionWaitRef.current = []
+    callbacks.forEach(cb => cb())
   }, [])
 
   const renderSides = useCallback(
@@ -77,6 +76,7 @@ const Cube: React.FC<ICubeProps> = ({
                 if (!finishHandled) {
                   finishHandled = true
                   animationProgressRef.current = false
+                  onTransitionEnd()
                 }
               }}
             />,
