@@ -1,114 +1,136 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { forkey2, ICube, IRotateResponce, Logic } from './Logic'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { forkey2, IMoveType, IRotateResponce, Logic } from './Logic'
 import Side from './Side'
 
-interface ICubeProps {
-  perspective: number
-  sideWidth: number
-  logic: Logic
+export type IPerformMove = (moveType: IMoveType, clockwise?: boolean) => void
+export type IWaitTransition = (callback: () => void) => void
+
+export interface ICubeHelpers {
+  performMove: IPerformMove
+  waitTransition: IWaitTransition
 }
 
-const Cube: React.FC<ICubeProps> = ({ perspective, sideWidth, logic }) => {
-  const [blocks, setBlocks] = useState<ICube>(logic.blocks)
-  const [animatedSides, setAnimatedSides] = useState<JSX.Element[]>([])
-  const [animatedCount, setAnimatedCount] = useState(0)
+interface ICubeProps {
+  transitionTime: number
+  perspective: number
+  sideWidth: number
+  registerHelpers: (helpers: ICubeHelpers) => void
+}
+
+const Cube: React.FC<ICubeProps> = ({
+  transitionTime,
+  perspective,
+  sideWidth,
+  registerHelpers,
+}) => {
+  const logic = useMemo(() => new Logic(), [])
+
+  const [sides, setSides] = useState<JSX.Element[]>([])
+
+  const animationProgressRef = useRef(false)
+  const stepCountRef = useRef(0)
+
+  const transitionWaitRef = useRef<Array<() => void>>([])
+  const waitTransition: IWaitTransition = useCallback(
+    callback => transitionWaitRef.current.push(callback),
+    []
+  )
 
   useEffect(() => {
-    logic.registerCallback(() => setBlocks(logic.blocks))
-  }, [logic])
+    renderFrontSide()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const startAnimation = useCallback(
+  const onTransitionEnd = useCallback(() => {
+    // const callbacks = [...transitionWaitRef.current]
+    // transitionWaitRef.current = []
+    // callbacks.forEach(cb => cb())
+    performMove('R', true)
+  }, [])
+
+  const renderSides = useCallback(
     (rotateResponse: IRotateResponce) => {
+      let finishHandled = false
       const ans: JSX.Element[] = []
+      console.log('render sides')
+      ++stepCountRef.current
+      animationProgressRef.current = rotateResponse.affectedCoords.length > 0
       forkey2((x, y) => {
+        const sharedOptions = {
+          transitionTime,
+          perspective,
+          width: sideWidth,
+          x,
+          y,
+        }
         if (
-          rotateResponse.affectedCoords.length === 0 ||
           rotateResponse.affectedCoords.some(([_x, _y]) => _x === x && _y === y)
         ) {
+          console.log('there are animated coords')
           ans.push(
             <Side
-              key={`animated_${x}_${y}_before`}
-              perspective={perspective}
+              {...sharedOptions}
+              key={`animated_${x}_${y}_before_${stepCountRef.current}`}
               state={rotateResponse.before[x][y]}
-              width={sideWidth}
-              x={x}
-              y={y}
               to={rotateResponse.to}
-              onTransitionEnd={() => setAnimatedCount(cnt => cnt - 1)}
+              onTransitionEnd={() => {
+                if (!finishHandled) {
+                  finishHandled = true
+                  animationProgressRef.current = false
+                }
+              }}
             />,
             <Side
-              key={`animated_${x}_${y}_after`}
-              perspective={perspective}
+              {...sharedOptions}
+              key={`animated_${x}_${y}_after_${stepCountRef.current}`}
               state={rotateResponse.after[x][y]}
-              width={sideWidth}
-              x={x}
-              y={y}
               from={rotateResponse.from}
             />
           )
         } else {
           ans.push(
             <Side
-              key={`noanimated_${x}_${y}`}
-              perspective={perspective}
+              {...sharedOptions}
+              key={`noanimated_${x}_${y}_${stepCountRef.current}`}
               state={rotateResponse.before[x][y]}
-              width={sideWidth}
-              x={x}
-              y={y}
             />
           )
         }
       })
-      setAnimatedSides(ans)
-      setAnimatedCount(rotateResponse.affectedCoords.length || 9)
+      setSides(ans)
     },
-    [perspective, sideWidth]
+    [perspective, sideWidth, transitionTime]
+  )
+
+  const renderFrontSide = useCallback(() => {
+    const frontSide = logic.getFrontSquare()
+    renderSides({
+      before: frontSide,
+      after: frontSide,
+      from: [0, 0, 0],
+      to: [0, 0, 0],
+      affectedCoords: [],
+    })
+  }, [logic, renderSides])
+
+  const performMove = useCallback(
+    (moveType: IMoveType, clockwise?: boolean) => {
+      console.log(moveType, clockwise, animationProgressRef.current)
+      if (!animationProgressRef.current) {
+        renderSides(logic.performMove(moveType, clockwise))
+      }
+    },
+    [logic, renderSides]
   )
 
   useEffect(() => {
-    function handler(event: KeyboardEvent) {
-      if (animatedCount) return
-      let rotate: (() => IRotateResponce) | null = null
-      if (/^Arrow(?:Left|Right|Up|Down)$/i.test(event.code)) {
-        const methodName = `rotate${event.code.slice(5)}`
-        const method = logic[methodName as keyof Logic] as () => IRotateResponce
-        rotate = () => method.call(logic)
-      } else if (/^Key(?:R|L|U|D|F)$/i.test(event.code)) {
-        const methodName = `rotate${event.code[3]}`
-        const method = logic[methodName as keyof Logic] as (
-          clockwise: boolean
-        ) => IRotateResponce
-        rotate = () => method.call(logic, !event.shiftKey)
-      }
-      if (rotate) {
-        const rotateResponse = rotate()
-        startAnimation(rotateResponse)
-        setBlocks(logic.blocks)
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [logic, startAnimation, animatedCount])
+    registerHelpers({
+      performMove,
+      waitTransition,
+    })
+  }, [registerHelpers, performMove, waitTransition])
 
-  const staticSides = useMemo(() => {
-    const ans: JSX.Element[] = []
-    const front = logic.getFrontSquare()
-    forkey2((x, y) =>
-      ans.push(
-        <Side
-          key={`static_${x}_${y}`}
-          perspective={perspective}
-          width={sideWidth}
-          x={x}
-          y={y}
-          state={front[x][y]}
-        />
-      )
-    )
-    return ans
-  }, [perspective, sideWidth, blocks, logic])
-
-  return <>{animatedCount ? animatedSides : staticSides}</>
+  return <>{sides}</>
 }
 
-export default Cube
+export default React.memo(Cube)

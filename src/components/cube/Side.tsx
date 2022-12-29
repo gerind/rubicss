@@ -12,6 +12,7 @@ export const stateToColor = {
 export type ISideState = keyof typeof stateToColor
 
 interface ISideProps {
+  transitionTime: number
   perspective: number
   state: ISideState
   width: number
@@ -23,6 +24,7 @@ interface ISideProps {
 }
 
 const Side: React.FC<ISideProps> = ({
+  transitionTime,
   perspective,
   state,
   width,
@@ -48,22 +50,23 @@ const Side: React.FC<ISideProps> = ({
       border: '5px solid black',
       borderRadius: '5px',
       backfaceVisibility: 'hidden',
-      transition: `transform .5s linear`,
+      transition: `transform ${transitionTime}ms linear`,
       transform: `translate(-50%, -50%) perspective(${perspective}px) rotateX(${
         deg[0]
       }deg) rotateY(${deg[1]}deg) rotateZ(${deg[2]}deg) translate3d(${
         width * x
       }px, ${width * y}px, ${width * 1.5}px)`,
     }),
-    [deg, perspective, state, width, x, y]
+    [deg, perspective, state, width, x, y, transitionTime]
   )
 
   useEffect(() => {
+    console.log('Side useEffect')
     setDeg(to ? to : [0, 0, 0])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return <div style={styles} onTransitionEnd={onTransitionEnd}></div>
+  return <div style={styles} onTransitionEndCapture={onTransitionEnd}></div>
 }
 
 export default Side

@@ -17,6 +17,29 @@ export type ISquare = {
 export type IKey = -1 | 0 | 1
 export type ICoords = [IKey, IKey, IKey]
 
+export type IMoveType =
+  | 'R'
+  | 'L'
+  | 'F'
+  | 'U'
+  | 'D'
+  | 'Up'
+  | 'Left'
+  | 'Right'
+  | 'Down'
+
+export const availableMoves: IMoveType[] = [
+  'R',
+  'L',
+  'F',
+  'U',
+  'D',
+  'Up',
+  'Left',
+  'Right',
+  'Down',
+]
+
 export type IMatrix = number[][]
 
 interface IRotateOptions {
@@ -76,11 +99,6 @@ export function generateCube(generateSides: boolean = true): ICube {
 
 export class Logic {
   public blocks = generateCube()
-  private callback: Function = () => {}
-
-  registerCallback(_callback: Function) {
-    this.callback = _callback
-  }
 
   deconstruct() {
     const methods = [
@@ -96,7 +114,6 @@ export class Logic {
     ].map(f => f.bind(this))
     for (let i = 0; i < 500; ++i)
       methods[Math.floor(Math.random() * methods.length)](Math.random() < 0.5)
-    this.callback()
   }
 
   getFrontSquare(): ISquare {
@@ -125,15 +142,17 @@ export class Logic {
     this.blocks = next
 
     const affectedCoords: [IKey, IKey][] = []
-    if (options.x || options.y) {
-      forkey2((x, y) => {
+    forkey2((x, y) => {
+      if (options.x || options.y) {
         if (coordsSatisfy([x, y, 1], options)) affectedCoords.push([x, y])
-      })
-    }
+      } else affectedCoords.push([x, y])
+    })
+
     const from = [rotateOX, rotateOY, rotateOZ].map(f =>
       options.rotate === f ? options.count * -90 : 0
     ) as [number, number, number]
     const to = from.map(deg => (deg ? -deg : deg)) as typeof from
+
     return {
       before,
       after: this.getFrontSquare(),
@@ -217,5 +236,11 @@ export class Logic {
         ? Block.prototype.turnClockWise
         : Block.prototype.turnAntiClockWise,
     })
+  }
+
+  performMove(moveType: IMoveType, clockwise?: boolean) {
+    const methodName = `rotate${moveType}` as keyof this
+    const method = this[methodName] as (clockwise?: boolean) => IRotateResponce
+    return method.call(this, clockwise)
   }
 }
