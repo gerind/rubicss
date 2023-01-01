@@ -2,23 +2,27 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { forkey2, IMoveType, IRotateResponce, Logic } from './Logic'
 import Side from './Side'
 
-export type IPerformMove = (moveType: IMoveType, clockwise?: boolean) => void
+export type IPerformMove = (
+  transitionTime: number,
+  moveType: IMoveType,
+  clockwise?: boolean
+) => void
 export type IWaitTransition = (callback: () => void) => void
 
 export interface ICubeHelpers {
   performMove: IPerformMove
   waitTransition: IWaitTransition
+  block: () => void
+  unblock: () => void
 }
 
 interface ICubeProps {
-  transitionTime: number
   perspective: number
   sideWidth: number
   registerHelpers: (helpers: ICubeHelpers) => void
 }
 
 const Cube: React.FC<ICubeProps> = ({
-  transitionTime,
   perspective,
   sideWidth,
   registerHelpers,
@@ -28,6 +32,7 @@ const Cube: React.FC<ICubeProps> = ({
   const [sides, setSides] = useState<JSX.Element[]>([])
 
   const animationProgressRef = useRef(false)
+  const blockRef = useRef(false)
   const stepCountRef = useRef(0)
 
   const transitionWaitRef = useRef<Array<() => void>>([])
@@ -48,12 +53,12 @@ const Cube: React.FC<ICubeProps> = ({
   }, [])
 
   const renderSides = useCallback(
-    (rotateResponse: IRotateResponce) => {
+    (rotateResponse: IRotateResponce, transitionTime: number) => {
       let finishHandled = false
       const ans: JSX.Element[] = []
-      console.log('render sides')
       ++stepCountRef.current
-      animationProgressRef.current = rotateResponse.affectedCoords.length > 0
+      animationProgressRef.current =
+        rotateResponse.affectedCoords.length > 0 && transitionTime > 0
       forkey2((x, y) => {
         const sharedOptions = {
           transitionTime,
@@ -65,7 +70,6 @@ const Cube: React.FC<ICubeProps> = ({
         if (
           rotateResponse.affectedCoords.some(([_x, _y]) => _x === x && _y === y)
         ) {
-          console.log('there are animated coords')
           ans.push(
             <Side
               {...sharedOptions}
@@ -99,25 +103,27 @@ const Cube: React.FC<ICubeProps> = ({
       })
       setSides(ans)
     },
-    [perspective, sideWidth, transitionTime]
+    [perspective, sideWidth, onTransitionEnd]
   )
 
   const renderFrontSide = useCallback(() => {
     const frontSide = logic.getFrontSquare()
-    renderSides({
-      before: frontSide,
-      after: frontSide,
-      from: [0, 0, 0],
-      to: [0, 0, 0],
-      affectedCoords: [],
-    })
+    renderSides(
+      {
+        before: frontSide,
+        after: frontSide,
+        from: [0, 0, 0],
+        to: [0, 0, 0],
+        affectedCoords: [],
+      },
+      0
+    )
   }, [logic, renderSides])
 
   const performMove = useCallback(
-    (moveType: IMoveType, clockwise?: boolean) => {
-      console.log(moveType, clockwise, animationProgressRef.current)
-      if (!animationProgressRef.current) {
-        renderSides(logic.performMove(moveType, clockwise))
+    (transitionTime: number, moveType: IMoveType, clockwise?: boolean) => {
+      if (!animationProgressRef.current && !blockRef.current) {
+        renderSides(logic.performMove(moveType, clockwise), transitionTime)
       }
     },
     [logic, renderSides]
@@ -127,6 +133,8 @@ const Cube: React.FC<ICubeProps> = ({
     registerHelpers({
       performMove,
       waitTransition,
+      block: () => (blockRef.current = true),
+      unblock: () => (blockRef.current = false),
     })
   }, [registerHelpers, performMove, waitTransition])
 

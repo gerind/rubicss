@@ -5,7 +5,7 @@ import { availableMoves } from '../components/cube/Logic'
 export function useDeconstruct(
   helpers: ICubeHelpers,
   rotationsCount: number,
-  rotationTime: number
+  processTransitionTime: number
 ) {
   const [isDeconstruction, changeDeconstruction] = useState(false)
   const [step, setStep] = useState(0)
@@ -14,17 +14,17 @@ export function useDeconstruct(
   const randomRotation = useCallback(() => {
     const moves: Function[] = []
     for (const s of availableMoves)
-      if (s.length > 1) moves.push(() => helpers.performMove(s))
+      if (s.length > 1)
+        moves.push(() => helpers.performMove(processTransitionTime, s))
       else
         moves.push(
-          () => helpers.performMove(s, true),
-          () => helpers.performMove(s, false)
+          () => helpers.performMove(processTransitionTime, s, true),
+          () => helpers.performMove(processTransitionTime, s, false)
         )
     moves[Math.floor(Math.random() * moves.length)]()
-  }, [helpers])
+  }, [helpers, processTransitionTime])
 
   useEffect(() => {
-    console.log(isDeconstruction, step, lastStepRef.current)
     if (!isDeconstruction) {
       lastStepRef.current = -1
       setStep(0)
@@ -34,16 +34,20 @@ export function useDeconstruct(
     if (step < rotationsCount) {
       lastStepRef.current = step
       randomRotation()
-      helpers.waitTransition(() => {
-        console.log('waitTransition')
-        setStep(step + 1)
-      })
+      helpers.waitTransition(() => setStep(step + 1))
     } else {
       lastStepRef.current = -1
       changeDeconstruction(false)
       setStep(0)
     }
-  }, [step, isDeconstruction, helpers, randomRotation, rotationsCount])
+  }, [
+    step,
+    isDeconstruction,
+    helpers,
+    randomRotation,
+    rotationsCount,
+    processTransitionTime,
+  ])
 
   return [isDeconstruction, changeDeconstruction] as const
 }

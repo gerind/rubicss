@@ -4,6 +4,7 @@ import Display from './components/Display'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   DECONSTRUCT_MOVES_COUNT,
+  DECONSTRUCT_TRANSITION_TIME,
   perspective,
   sideWidth,
 } from './core/constants'
@@ -27,7 +28,7 @@ const App: React.FC = () => {
   const [, changeDeconstruction] = useDeconstruct(
     helpers!,
     DECONSTRUCT_MOVES_COUNT,
-    1000
+    DECONSTRUCT_TRANSITION_TIME
   )
 
   const keyHandler = useCallback(
@@ -37,10 +38,10 @@ const App: React.FC = () => {
         moveType = code.slice(5) as IMoveType
       else if (/^Key(?:R|L|U|D|F)$/.test(code)) moveType = code[3] as IMoveType
       if (moveType) {
-        helpers!.performMove(moveType!, !shiftKey)
+        helpers!.performMove(transitionTime, moveType!, !shiftKey)
       }
     },
-    [helpers]
+    [helpers, transitionTime]
   )
 
   useEffect(() => {
@@ -59,7 +60,6 @@ const App: React.FC = () => {
         </div>
         <div className="center">
           <Cube
-            transitionTime={transitionTime}
             perspective={perspective}
             sideWidth={sideWidth}
             registerHelpers={registerHelpers}

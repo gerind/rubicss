@@ -61,12 +61,11 @@ const Side: React.FC<ISideProps> = ({
   )
 
   useEffect(() => {
-    console.log('Side useEffect')
     requestAnimationFrame(() => setDeg(to ? to : [0, 0, 0]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return <div style={styles} onTransitionEndCapture={onTransitionEnd}></div>
+  return <div style={styles} onTransitionEnd={onTransitionEnd}></div>
 }
 
 export default Side
