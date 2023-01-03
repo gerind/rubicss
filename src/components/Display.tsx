@@ -1,4 +1,5 @@
 import React from 'react'
+import { DISPLAY_WIDTH } from '../core/constants'
 import { useDataSelector } from '../hooks/useSelector'
 
 const Display: React.FC = () => {
@@ -6,10 +7,11 @@ const Display: React.FC = () => {
 
   const style: React.CSSProperties = {
     transition: 'all .8s linear',
+    width: `${DISPLAY_WIDTH}px`,
   }
   if (!showDisplay) {
     style.transform = 'translate(-100%, 0)'
-    style.marginRight = '-333px'
+    style.marginRight = `-${DISPLAY_WIDTH}px`
   }
 
   return (

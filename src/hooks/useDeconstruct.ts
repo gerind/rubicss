@@ -49,5 +49,7 @@ export function useDeconstruct(
     processTransitionTime,
   ])
 
-  return [isDeconstruction, changeDeconstruction] as const
+  return [isDeconstruction, changeDeconstruction] as ReturnType<
+    typeof useState<boolean>
+  >
 }

@@ -5,8 +5,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   DECONSTRUCT_MOVES_COUNT,
   DECONSTRUCT_TRANSITION_TIME,
-  perspective,
-  sideWidth,
+  PERSPECTIVE,
+  SIDE_WIDTH,
 } from './core/constants'
 import { useDataActions } from './hooks/useDataActions'
 import { useDataSelector } from './hooks/useSelector'
@@ -60,8 +60,8 @@ const App: React.FC = () => {
         </div>
         <div className="center">
           <Cube
-            perspective={perspective}
-            sideWidth={sideWidth}
+            perspective={PERSPECTIVE}
+            sideWidth={SIDE_WIDTH}
             registerHelpers={registerHelpers}
           />
         </div>
